@@ -23,8 +23,6 @@ sayfalar = []  #excel dosyasındaki tarih olan sayfa adlarından oluşan bir lis
 for gn in range (1, gun+1):
     sayfalar.append((str(gn).zfill(2)+"."+ ay + "."+ yil))
 
-gunluk_yatan = pd.DataFrame()
-
 for filename in os.listdir(loc):
     ciro = pd.read_excel(os.path.join(loc, filename),
                       sheet_name=sayfalar,
@@ -36,21 +34,39 @@ for filename in os.listdir(loc):
         for i in range (1, 67):
             aa=ciro[list(ciro.keys())[g]].iloc[eval(hucre[i])]
             gunluk_kasa.append(aa)  
-        magaza_kasa[filename + "-" + str(g+1).zfill(2)] = gunluk_kasa
-        yatan=ciro[list(ciro.keys())[g]].iloc[57:62, 0:7].reset_index(drop=True).rename(columns=ciro[list(ciro.keys())[g]].iloc[56])
-        yatan["Dosya Adı"]=filename
-        yatan["Tarih"]= list(ciro.keys())[g]
-        yatan['Magaza']=ciro[list(ciro.keys())[g]].iloc[0,5]
-        gunluk_yatan = pd.concat([gunluk_yatan, yatan], ignore_index=True)
-        
-gunluk_yatan =gunluk_yatan[(gunluk_yatan[["YATIRILAN TL", "YATIRILAN USD", "YATIRILAN EURO"]].sum(axis=1, skipna=True) != 0)]
+        magaza_kasa[filename + "-" + str(g+1).zfill(2)] = gunluk_kasa     
+
 magaza_kasa_T = magaza_kasa.T
 magaza_kasa_T['MAĞAZA ADI'] = magaza_kasa_T['MAĞAZA ADI'].str.strip()
 magaza_kasa_T = magaza_kasa_T.merge(kodlar,
                                       on ='MAĞAZA ADI', how="left").set_axis(magaza_kasa_T.index)
-#Excele Yazma
 
-gunluk_yatan['Magaza'] = gunluk_yatan['Magaza'].str.strip()
+# Yatırlan Nakitler Bölümü
+
+df2 = pd.DataFrame()
+for filename in os.listdir(loc):
+    sheets = pd.read_excel(os.path.join(loc, filename),
+                      sheet_name=sayfalar,
+                      skiprows = 57, nrows = 5, header = 1, index_col=0, usecols=[0, 1, 2, 3, 4, 5, 6])
+    
+    magaza = pd.read_excel(os.path.join(loc, filename),
+                           sheet_name=sayfalar[0],
+                           skiprows = 2, nrows = 1, header = None, usecols=[5])
+    
+    dfs = []
+    for framename in sheets.keys():
+        temp_df = sheets[framename]
+        temp_df['Sayfa'] = framename
+        dfs.append(temp_df)
+    df = pd.concat(dfs)
+    df.loc[:,"Dosya Adı"] = str(i).zfill(3) + ".xlsx"
+    df.loc[:,"Magaza"] = magaza.at[0, 5]
+    
+ 
+    df1 = df.dropna(thresh=4)
+    df2 = pd.concat([df2, df1])
+
+df2['Magaza'] = df2['Magaza'].str.strip()
 g_fark = magaza_kasa_T[["MAĞAZA ADI", "DS-Tarih", "GENEL FARK"]]
 g_fark.drop("Adres", inplace=True)
 g_fark[(g_fark["GENEL FARK"] < -1) | (g_fark["GENEL FARK"] > 1)]
@@ -68,4 +84,26 @@ with pd.ExcelWriter(Rapor+N_Gunu+'-x-Rapor.xlsx') as writer:
     Nakitler1.to_excel(writer, sheet_name = 'Main-Nakit')
     g_fark[(g_fark["GENEL FARK"] < -1) | (g_fark["GENEL FARK"] > 1)].to_excel(writer, sheet_name = "Hatalı")
     magaza_kasa_T[["MAĞAZA ADI", "DS-Tarih", "NOTLAR"]].dropna().to_excel(writer, sheet_name = "Notlar")
-    gunluk_yatan.to_excel(writer, sheet_name = "Yatırılan Nakitler")
+    df2[(df2[["YATIRILAN TL", "YATIRILAN USD", "YATIRILAN EURO"]].sum(axis=1, skipna=True) != 0)].to_excel(writer, sheet_name = "Yatırılan Nakitler")
+
+    
+g_fark = magaza_kasa_T[["MAĞAZA ADI", "DS-Tarih", "GENEL FARK"]]
+g_fark.drop("Adres", inplace=True)
+g_fark[(g_fark["GENEL FARK"] < -1) | (g_fark["GENEL FARK"] > 1)]
+Nakitler = magaza_kasa_T[["KASA KODU", "MAĞAZA ADI", "DS-Tarih", "FATURALI SATIŞLAR", "GİDER PUSULASI", "CİRO TOPLAMI", "NAKİT_1", "EURO TUTAR", "USD TUTAR", "MASRAF", "NAKİT", "YATIRILAN TL FARK", "YATIRILAN EURO FARK","YATIRILAN USD FARK", "İL"]]
+Nakitler.drop("Adres", inplace=True)
+
+Bugun_n = Nakitler[Nakitler["DS-Tarih"] == N_Gunu]
+Bugun_n1 = Bugun_n[["DS-Tarih", "KASA KODU", "MAĞAZA ADI", "NAKİT_1", "EURO TUTAR", "USD TUTAR"]]
+Nakitler1=Nakitler[["DS-Tarih", "KASA KODU", "MAĞAZA ADI", "NAKİT_1", "EURO TUTAR", "USD TUTAR"]]
+with pd.ExcelWriter(Rapor+"control.xlsx") as writer:
+    magaza_kasa_T.to_excel(writer, sheet_name = 'Raw')   
+    Nakitler.to_excel(writer, sheet_name = 'Main')
+    Bugun_n.to_excel(writer, sheet_name = N_Gunu)
+    Bugun_n1.to_excel(writer, sheet_name = N_Gunu+"-Nakit")
+    Nakitler1.to_excel(writer, sheet_name = 'Main-Nakit')
+    g_fark[(g_fark["GENEL FARK"] < -1) | (g_fark["GENEL FARK"] > 1)].to_excel(writer, sheet_name = "Hatalı")
+    magaza_kasa_T[["MAĞAZA ADI", "DS-Tarih", "NOTLAR"]].dropna().to_excel(writer, sheet_name = "Notlar")
+    df2[(df2[["YATIRILAN TL", "YATIRILAN USD", "YATIRILAN EURO"]].sum(axis=1, skipna=True) != 0)].to_excel(writer, sheet_name = "Yatırılan Nakitler")
+    
+
