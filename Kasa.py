@@ -10,11 +10,11 @@ kodlar = pd.read_excel("D:\\Kasalar\\Config\\Config.xlsx",  sheet_name= "KF",  i
 hucre = magaza_kasa["Adres"]
 
 #Parametreler
-gun=Parametre.iloc[0][1] #Kasa Dosyası yapılacak aydaki gün sayısı yazılacak
-ay=Parametre.iloc[1][1] #hangi ay olduğu
-yil=Parametre.iloc[2][1]
-Konum=Parametre.iloc[3][1]
-Rapor=Parametre.iloc[4][1]
+gun=Parametre.iloc[0, 1] #Kasa Dosyası yapılacak aydaki gün sayısı yazılacak
+ay=Parametre.iloc[1, 1] #hangi ay olduğu
+yil=Parametre.iloc[2, 1]
+Konum=Parametre.iloc[3, 1]
+Rapor=Parametre.iloc[4, 1]
 loc = (Konum + ay + "\\") #dosyaların bulunduğu adres
 N_Gunu = str(gun).zfill(2)+"."+ ay + "."+ yil #"08.09.2021" #Raporda
 
