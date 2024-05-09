@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import datetime
 import pytz
+import pandas as pd
 
 # E-posta kriterleri
 current_time = datetime.datetime.now()
