@@ -18,9 +18,11 @@ Rapor=Parametre.iloc[4][1]
 loc = (Konum + ay + "\\") #dosyaların bulunduğu adres
 N_Gunu = str(gun).zfill(2)+"."+ ay + "."+ yil #"08.09.2021" #Raporda
 
+
 sayfalar = []  #excel dosyasındaki tarih olan sayfa adlarından oluşan bir liste yapıyoruz.
 for gn in range (1, gun+1):
     sayfalar.append((str(gn).zfill(2)+"."+ ay + "."+ yil))
+
 for filename in os.listdir(loc):
     ciro = pd.read_excel(os.path.join(directory, filename),
                       sheet_name=sayfalar,
@@ -104,3 +106,4 @@ with pd.ExcelWriter(Rapor+"control.xlsx") as writer:
     magaza_kasa_T[["MAĞAZA ADI", "DS-Tarih", "NOTLAR"]].dropna().to_excel(writer, sheet_name = "Notlar")
     df2[(df2[["YATIRILAN TL", "YATIRILAN USD", "YATIRILAN EURO"]].sum(axis=1, skipna=True) != 0)].to_excel(writer, sheet_name = "Yatırılan Nakitler")
     
+
