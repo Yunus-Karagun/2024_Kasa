@@ -24,7 +24,7 @@ for gn in range (1, gun+1):
     sayfalar.append((str(gn).zfill(2)+"."+ ay + "."+ yil))
 
 for filename in os.listdir(loc):
-    ciro = pd.read_excel(os.path.join(directory, filename),
+    ciro = pd.read_excel(os.path.join(loc, filename),
                       sheet_name=sayfalar,
                       skiprows = 2, nrows = 65, header = None, index_col=None, usecols=[0, 1, 2, 3, 4, 5, 6, 7])
 
@@ -45,11 +45,11 @@ magaza_kasa_T = magaza_kasa_T.merge(kodlar,
 
 df2 = pd.DataFrame()
 for filename in os.listdir(loc):
-    sheets = pd.read_excel(os.path.join(directory, filename),
+    sheets = pd.read_excel(os.path.join(loc, filename),
                       sheet_name=sayfalar,
                       skiprows = 57, nrows = 5, header = 1, index_col=0, usecols=[0, 1, 2, 3, 4, 5, 6])
     
-    magaza = pd.read_excel(os.path.join(directory, filename),
+    magaza = pd.read_excel(os.path.join(loc, filename),
                            sheet_name=sayfalar[0],
                            skiprows = 2, nrows = 1, header = None, usecols=[5])
     
